@@ -1,0 +1,4 @@
+/usr/local/redis/bin/redis-server /usr/local/redis/conf/6379.conf
+/usr/local/nginx/sbin/nginx
+ rabbitmq-plugins enable rabbitmq_management
+ rabbitmq-server
