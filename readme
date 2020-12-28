@@ -1,4 +1,6 @@
-/usr/local/redis/bin/redis-server /usr/local/redis/conf/6379.conf
-/usr/local/nginx/sbin/nginx
- rabbitmq-plugins enable rabbitmq_management
- rabbitmq-server
+redis :   /usr/local/redis/bin/redis-server /usr/local/redis/conf/6379.conf
+nginx :   /usr/local/nginx/sbin/nginx
+rabbitmq :rabbitmq-plugins enable rabbitmq_management
+          rabbitmq-server
+
+xc-service-manage-course 是接入的资源服务器
