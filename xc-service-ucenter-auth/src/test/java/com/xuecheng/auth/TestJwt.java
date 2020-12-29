@@ -5,17 +5,24 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.security.jwt.Jwt;
 import org.springframework.security.jwt.JwtHelper;
 import org.springframework.security.jwt.crypto.sign.RsaSigner;
 import org.springframework.security.jwt.crypto.sign.RsaVerifier;
 import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
 import org.springframework.test.context.junit4.SpringRunner;
+import sun.misc.BASE64Encoder;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.security.KeyPair;
+import java.security.PublicKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Administrator
@@ -27,7 +34,7 @@ public class TestJwt {
 
     //创建jwt令牌
     @Test
-    public void testCreateJwt(){
+    public void testCreateJwt() {
         //密钥库文件
         String keystore = "xc.keystore";
         //密钥库的密码
@@ -36,18 +43,20 @@ public class TestJwt {
         //密钥库文件路径
         ClassPathResource classPathResource = new ClassPathResource(keystore);
         //密钥别名
-        String alias  = "xckey";
+        String alias = "xckey";
         //密钥的访问密码
         String key_password = "xuecheng";
         //密钥工厂
-        KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(classPathResource,keystore_password.toCharArray());
+        KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(classPathResource, keystore_password.toCharArray());
         //密钥对（公钥和私钥）
         KeyPair keyPair = keyStoreKeyFactory.getKeyPair(alias, key_password.toCharArray());
+
         //获取私钥
         RSAPrivateKey aPrivate = (RSAPrivateKey) keyPair.getPrivate();
+
         //jwt令牌的内容
-        Map<String,String> body = new HashMap<>();
-        body.put("name","itcast");
+        Map<String, String> body = new HashMap<>();
+        body.put("name", "itcast");
         String bodyString = JSON.toJSONString(body);
         //生成jwt令牌
         Jwt jwt = JwtHelper.encode(bodyString, new RsaSigner(aPrivate));
@@ -55,11 +64,22 @@ public class TestJwt {
         String encoded = jwt.getEncoded();
         System.out.println(encoded);
 
+        //获取公钥
+        PublicKey aPublic = keyPair.getPublic();
+        byte[] encoded1 = aPublic.getEncoded();
+        String publicKeyBase64 = new BASE64Encoder().encode(encoded1);
+        String publickey = "-----BEGIN PUBLIC KEY-----" + publicKeyBase64 + "-----END PUBLIC KEY-----";
+        System.out.println(publickey);
+
+        Jwt jwt1 = JwtHelper.decodeAndVerify(encoded, new RsaVerifier(publickey));
+        //拿到jwt令牌中自定义的内容
+        String claims = jwt1.getClaims();
+        System.out.println(claims);
     }
 
     //校验jwt令牌
     @Test
-    public void testVerify(){
+    public void testVerify() {
         //公钥
         String publickey = "-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnASXh9oSvLRLxk901HANYM6KcYMzX8vFPnH/To2R+SrUVw1O9rEX6m1+rIaMzrEKPm12qPjVq3HMXDbRdUaJEXsB7NgGrAhepYAdJnYMizdltLdGsbfyjITUCOvzZ/QgM1M4INPMD+Ce859xse06jnOkCUzinZmasxrmgNV3Db1GtpyHIiGVUY0lSO1Frr9m5dpemylaT0BV3UwTQWVW9ljm6yR3dBncOdDENumT5tGbaDVyClV0FEB1XdSKd7VjiDCDbUAUbDTG1fm3K9sx7kO1uMGElbXLgMfboJ963HEJcU01km7BmFntqI5liyKheX+HBUCD4zbYNPw236U+7QIDAQAB-----END PUBLIC KEY-----";
         //jwt令牌
@@ -69,4 +89,6 @@ public class TestJwt {
         String claims = jwt.getClaims();
         System.out.println(claims);
     }
+
+
 }
